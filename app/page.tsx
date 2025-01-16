@@ -1,101 +1,198 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import RecipeView from "@/components/RecipeView";
+import LoadingScreen from "@/components/LoadingScreen";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [showInput, setShowInput] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setErrorMessage(null);
+
+    const formData = new FormData(event.currentTarget);
+    const text = formData.get("text");
+    const image = formData.get("image") as File;
+
+    // Check if both text and image are empty
+    if (
+      (!text || text.toString().trim() === "") &&
+      (!image || image.size === 0)
+    ) {
+      setErrorMessage(
+        "Please write a list of your available ingredients or upload an image"
+      );
+      return;
+    }
+
+    setLoading(true);
+    setShowInput(false);
+
+    const servings = formData.get("servings");
+    const cookNow = formData.get("cookNow");
+
+    const enhancedText = `${text} (People eating: ${servings}, Cook Now: ${
+      cookNow === "on" ? "yes" : "no"
+    })`;
+    formData.set("text", enhancedText);
+
+    try {
+      const response = await fetch("/api/process", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "An error occurred");
+      }
+
+      try {
+        let recipeData;
+        if (data.result?.tool_calls?.[0]?.function?.arguments) {
+          // Handle the first response format
+          const parsedArguments = JSON.parse(
+            data.result.tool_calls[0].function.arguments
+          );
+          recipeData = parsedArguments.recipe_details;
+        } else if (data.result?.content?.[0]?.text?.value) {
+          // Handle the second response format
+          recipeData = JSON.parse(data.result.content[0].text.value);
+        } else {
+          throw new Error("Unexpected response format");
+        }
+
+        setResult(recipeData);
+      } catch (error) {
+        console.error("Error parsing JSON:", error);
+        console.error("Raw data:", data);
+        setResult({ error: "Failed to parse response data" });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setResult({ error: (error as any).message });
+      setShowInput(true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-background to-gray-900">
+      {loading && <LoadingScreen />}
+      {!result ? (
+        <div
+          className={`transition-all duration-500 ${
+            showInput ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+        >
+          <div className="max-w-lg mx-auto p-6 pt-12">
+            <h1 className="mt-6 text-4xl font-bold text-center mb-8 bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text">
+              Recipe Generator
+            </h1>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label
+                  htmlFor="text"
+                  className="block text-lg font-medium text-foreground/90"
+                >
+                  What ingredients do you have?
+                </label>
+                <textarea
+                  id="text"
+                  name="text"
+                  placeholder="Enter ingredients here..."
+                  className="w-full p-3 border border-gray-700 rounded-lg bg-gray-800/50 text-foreground focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={4}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="image"
+                  className="block text-lg font-medium text-foreground/90"
+                >
+                  Add a photo (optional)
+                </label>
+                <input
+                  type="file"
+                  id="image"
+                  name="image"
+                  accept="image/*"
+                  className="w-full p-3 border border-gray-700 rounded-lg bg-gray-800/50 text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="servings"
+                  className="block text-lg font-medium text-foreground/90"
+                >
+                  Servings
+                </label>
+                <input
+                  type="number"
+                  id="servings"
+                  name="servings"
+                  min="1"
+                  defaultValue="2"
+                  className="w-full p-3 border border-gray-700 rounded-lg bg-gray-800/50 text-foreground focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="flex items-center space-x-3 p-3 border border-gray-700 rounded-lg bg-gray-800/50">
+                <input
+                  type="checkbox"
+                  id="cookNow"
+                  name="cookNow"
+                  className="w-5 h-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500"
+                  defaultChecked
+                />
+                <label htmlFor="cookNow" className="text-foreground/90">
+                  I want to cook this right now
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 px-4 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? "Creating Recipe..." : "Generate Recipe"}
+              </button>
+
+              {errorMessage && (
+                <div className="mt-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
+                  <p className="text-red-500 text-center">{errorMessage}</p>
+                </div>
+              )}
+            </form>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      ) : (
+        <div
+          className={`transition-all duration-500 ${
+            !showInput && !loading
+              ? "opacity-100"
+              : "opacity-0 pointer-events-none"
+          }`}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+          <RecipeView
+            results={
+              result.recipe
+                ? result.recipe
+                : result.content
+                ? result.content
+                : result
+            }
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        </div>
+      )}
+    </main>
   );
 }
