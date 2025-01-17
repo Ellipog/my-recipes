@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 
 interface ImageUploadPreviewProps {
   images: File[];
@@ -18,10 +19,13 @@ export default function ImageUploadPreview({
           key={index}
           className="relative aspect-square rounded-lg overflow-hidden group"
         >
-          <img
+          <Image
             src={URL.createObjectURL(file)}
             alt={`Upload preview ${index + 1}`}
             className="w-full h-full object-cover"
+            width={300}
+            height={300}
+            unoptimized
           />
           <button
             onClick={(e) => {

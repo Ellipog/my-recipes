@@ -324,6 +324,14 @@ export default function Home() {
           />
         </div>
       )}
+      {result && (
+        <button
+          onClick={resetForm}
+          className="w-full py-3 px-4 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors mt-4"
+        >
+          Try Again
+        </button>
+      )}
     </main>
   );
 }
