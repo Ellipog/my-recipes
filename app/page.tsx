@@ -159,14 +159,6 @@ export default function Home() {
     }
   };
 
-  const resetForm = () => {
-    setResult(null);
-    setLoading(false);
-    setShowInput(true);
-    setErrorMessage(null);
-    setKey(key + 1);
-  };
-
   return (
     <main className="min-h-screen" key={key}>
       {loading && <LoadingScreen />}
