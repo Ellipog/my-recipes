@@ -66,5 +66,5 @@ export default function RecipePage() {
     return null;
   }
 
-  return <RecipeView results={recipe as any} />;
+  return <RecipeView results={recipe} />;
 }

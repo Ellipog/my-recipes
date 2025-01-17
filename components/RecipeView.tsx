@@ -12,10 +12,10 @@ interface Ingredient {
 }
 
 interface NutritionalInfo {
-  calories: string;
-  protein: string;
-  fat: string;
-  carbohydrates: string;
+  calories: number;
+  protein: number;
+  fat: number;
+  carbohydrates: number;
 }
 
 interface Step {
@@ -26,23 +26,23 @@ interface Step {
 
 interface Recipe {
   _id?: string;
-  recipe_name?: string;
+  recipe_name: string;
   title?: string;
   name?: string;
-  ingredients_list?: Ingredient[];
-  ingredients?: Ingredient[];
+  ingredients_list: { ingredient: string; quantity: string }[];
+  ingredients?: { ingredient: string; quantity: string }[];
+  cooking_steps: { step: string; time: number; utility: string }[];
+  instructions?: { step: string; time: number; utility: string }[];
+  steps?: { step: string; time: number; utility: string }[];
   nutritional_information?: NutritionalInfo;
   nutritional?: NutritionalInfo;
-  cooking_steps?: Step[];
-  instructions?: Step[];
-  steps?: Step[];
 }
 
-interface RecipeProps {
+interface RecipeViewProps {
   results: Recipe;
 }
 
-export default function RecipeView({ results }: RecipeProps) {
+export default function RecipeView({ results }: RecipeViewProps) {
   const { isAuthenticated } = useAuth();
   const { fetchSavedRecipes, savedRecipes } = useRecipes();
   const router = useRouter();
