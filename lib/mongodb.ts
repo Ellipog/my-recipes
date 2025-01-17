@@ -5,9 +5,11 @@ type MongooseCache = {
   promise: Promise<typeof mongoose> | null;
 };
 
+/* eslint-disable no-var */
 declare global {
   var mongoose: MongooseCache | undefined;
 }
+/* eslint-enable no-var */
 
 if (!process.env.MONGODB_URI) {
   throw new Error("Please add your MONGODB_URI to .env.local");

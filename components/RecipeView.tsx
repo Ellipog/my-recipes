@@ -18,6 +18,12 @@ interface NutritionalInfo {
   carbohydrates: string;
 }
 
+interface Step {
+  step: string;
+  utility: string;
+  time: number;
+}
+
 interface Recipe {
   _id?: string;
   recipe_name?: string;
@@ -27,9 +33,9 @@ interface Recipe {
   ingredients?: Ingredient[];
   nutritional_information?: NutritionalInfo;
   nutritional?: NutritionalInfo;
-  cooking_steps?: string[];
-  instructions?: string[];
-  steps?: string[];
+  cooking_steps?: Step[];
+  instructions?: Step[];
+  steps?: Step[];
 }
 
 interface RecipeProps {
@@ -274,7 +280,7 @@ export default function RecipeView({ results }: RecipeProps) {
             Cooking Steps
           </h2>
           <ol className="space-y-4 sm:space-y-6">
-            {cooking_steps.map((step: any, index: any) => (
+            {cooking_steps.map((step: Step, index: number) => (
               <li
                 key={index}
                 className="relative pl-10 sm:pl-12 pb-4 sm:pb-6 border-b border-gray-700/50 last:border-0"
@@ -399,7 +405,7 @@ export default function RecipeView({ results }: RecipeProps) {
           </div>
         </div>
       )}
-      {showShareModal && (
+      {showShareModal && recipeId && (
         <ShareRecipeModal
           recipeId={recipeId}
           onClose={() => setShowShareModal(false)}
