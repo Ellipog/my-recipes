@@ -5,8 +5,16 @@ import { useRouter, useParams } from "next/navigation";
 import RecipeView from "@/components/RecipeView";
 import LoadingScreen from "@/components/LoadingScreen";
 
+interface Recipe {
+  title: string;
+  ingredients: string[];
+  instructions: string[];
+  cookingTime?: string;
+  servings?: number;
+}
+
 export default function SharedRecipePage() {
-  const [recipe, setRecipe] = useState<any>(null);
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const params = useParams();

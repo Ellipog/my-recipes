@@ -6,10 +6,18 @@ import React from "react";
 import RecipeView from "@/components/RecipeView";
 import LoadingScreen from "@/components/LoadingScreen";
 
+interface Recipe {
+  title: string;
+  ingredients: string[];
+  instructions: string[];
+  cookingTime?: string;
+  servings?: number;
+}
+
 export default function RecipePage() {
   const params = useParams();
   const id = params.id as string;
-  const [recipe, setRecipe] = useState<any>(null);
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 

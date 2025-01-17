@@ -10,7 +10,7 @@ export default function SideMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const { savedRecipes, fetchSavedRecipes } = useRecipes();
   const router = useRouter();
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {

@@ -6,30 +6,52 @@ import { useRecipes } from "@/contexts/RecipesContext";
 import { useRouter } from "next/navigation";
 import Notification from "@/components/Notification";
 
+interface Ingredient {
+  ingredient: string;
+  quantity: string;
+}
+
+interface NutritionalInfo {
+  calories: string;
+  protein: string;
+  fat: string;
+  carbohydrates: string;
+}
+
+interface Recipe {
+  _id?: string;
+  recipe_name?: string;
+  title?: string;
+  name?: string;
+  ingredients_list?: Ingredient[];
+  ingredients?: Ingredient[];
+  nutritional_information?: NutritionalInfo;
+  nutritional?: NutritionalInfo;
+  cooking_steps?: string[];
+  instructions?: string[];
+  steps?: string[];
+}
+
 interface RecipeProps {
-  results: any;
+  results: Recipe;
 }
 
 export default function RecipeView({ results }: RecipeProps) {
   const { isAuthenticated } = useAuth();
   const { fetchSavedRecipes, savedRecipes } = useRecipes();
   const router = useRouter();
-  const recipe_name = results.recipe_name
-    ? results.recipe_name
-    : results.title
-    ? results.title
-    : results.name;
-  const ingredients = results.ingredients_list
-    ? results.ingredients_list
-    : results.ingredients;
-  const nutritional_information = results.nutritional_information
-    ? results.nutritional_information
-    : results.nutritional;
-  const cooking_steps = results.cooking_steps
-    ? results.cooking_steps
-    : results.instructions
-    ? results.instructions
-    : results.steps;
+  const recipe_name =
+    results.recipe_name || results.title || results.name || "Untitled Recipe";
+  const ingredients = results.ingredients_list || results.ingredients || [];
+  const nutritional_information = results.nutritional_information ||
+    results.nutritional || {
+      calories: "0",
+      protein: "0",
+      fat: "0",
+      carbohydrates: "0",
+    };
+  const cooking_steps =
+    results.cooking_steps || results.instructions || results.steps || [];
 
   const [checkedIngredients, setCheckedIngredients] = useState<boolean[]>(
     new Array(ingredients.length).fill(false)
@@ -136,8 +158,6 @@ export default function RecipeView({ results }: RecipeProps) {
     }
   };
 
-  const isSharedRecipe = !results._id;
-
   // Check if this recipe is already saved by the current user
   const isRecipeSaved = savedRecipes.some(
     (recipe) => recipe.recipe_name === results.recipe_name
@@ -161,7 +181,7 @@ export default function RecipeView({ results }: RecipeProps) {
               Ingredients
             </h2>
             <ul className="space-y-3 sm:space-y-4">
-              {ingredients.map((ing: any, index: any) => (
+              {ingredients.map((ing: Ingredient, index: number) => (
                 <li key={index} className="group">
                   <label className="flex items-center gap-2 sm:gap-4 cursor-pointer p-2 sm:p-3 rounded-lg hover:bg-gray-700/30 transition-colors">
                     <div className="relative flex-shrink-0">

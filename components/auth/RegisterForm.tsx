@@ -31,8 +31,12 @@ export default function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
 
       login(data.token);
       onSuccess();
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unknown error occurred");
+      }
     }
   };
 

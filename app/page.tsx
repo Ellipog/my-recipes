@@ -4,8 +4,26 @@ import { useState } from "react";
 import RecipeView from "@/components/RecipeView";
 import LoadingScreen from "@/components/LoadingScreen";
 
+interface RecipeResult {
+  recipe?: {
+    title: string;
+    ingredients: string[];
+    instructions: string[];
+    cookingTime?: string;
+    servings?: number;
+  };
+  content?: {
+    title: string;
+    ingredients: string[];
+    instructions: string[];
+    cookingTime?: string;
+    servings?: number;
+  };
+  error?: string;
+}
+
 export default function Home() {
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<RecipeResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [showInput, setShowInput] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -74,7 +92,10 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Error:", error);
-      setResult({ error: (error as any).message });
+      setResult({
+        error:
+          error instanceof Error ? error.message : "An unknown error occurred",
+      });
       setShowInput(true);
     } finally {
       setLoading(false);

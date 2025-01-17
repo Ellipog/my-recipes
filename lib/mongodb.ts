@@ -1,7 +1,12 @@
 import mongoose from "mongoose";
 
+type MongooseCache = {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+};
+
 declare global {
-  var mongoose: { conn: any; promise: any } | undefined;
+  var mongoose: MongooseCache | undefined;
 }
 
 if (!process.env.MONGODB_URI) {
