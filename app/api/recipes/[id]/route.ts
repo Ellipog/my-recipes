@@ -1,9 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Recipe from "@/models/Recipe";
 import { verifyAuth } from "@/lib/auth";
 
-const withAuth = async (request: Request) => {
+type RouteHandlerContext = {
+  params: {
+    id: string;
+  };
+};
+
+const withAuth = async (request: NextRequest) => {
   const token = request.headers.get("Authorization")?.split(" ")[1];
   if (!token) return { error: "Unauthorized", status: 401 };
 
@@ -14,9 +20,9 @@ const withAuth = async (request: Request) => {
 };
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+  request: NextRequest,
+  context: RouteHandlerContext
+): Promise<NextResponse> {
   try {
     const auth = await withAuth(request);
     if ("error" in auth) {
@@ -25,7 +31,7 @@ export async function GET(
 
     await connectDB();
     const recipe = await Recipe.findOne({
-      _id: params.id,
+      _id: context.params.id,
       "users.userId": auth.userId,
     });
     if (!recipe) {
@@ -40,9 +46,9 @@ export async function GET(
 }
 
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+  request: NextRequest,
+  context: RouteHandlerContext
+): Promise<NextResponse> {
   try {
     const token = request.headers.get("Authorization")?.split(" ")[1];
     if (!token) {
@@ -57,7 +63,7 @@ export async function DELETE(
     await connectDB();
 
     const recipe = await Recipe.findOneAndDelete({
-      _id: params.id,
+      _id: context.params.id,
       "users.userId": userId,
       "users.permissions": "owner",
     });
