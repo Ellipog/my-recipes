@@ -3,12 +3,6 @@ import connectDB from "@/lib/mongodb";
 import Recipe from "@/models/Recipe";
 import { verifyAuth } from "@/lib/auth";
 
-type RouteHandlerContext = {
-  params: {
-    id: string;
-  };
-};
-
 const withAuth = async (request: NextRequest) => {
   const token = request.headers.get("Authorization")?.split(" ")[1];
   if (!token) return { error: "Unauthorized", status: 401 };
@@ -19,21 +13,25 @@ const withAuth = async (request: NextRequest) => {
   return { userId };
 };
 
-export async function GET(
-  request: NextRequest,
-  context: RouteHandlerContext
-): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const auth = await withAuth(request);
     if ("error" in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
+    // Extract ID from URL pattern
+    const id = request.url.split("/").pop();
+    if (!id) {
+      return NextResponse.json({ error: "Invalid recipe ID" }, { status: 400 });
+    }
+
     await connectDB();
     const recipe = await Recipe.findOne({
-      _id: context.params.id,
+      _id: id,
       "users.userId": auth.userId,
     });
+
     if (!recipe) {
       return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
     }
@@ -45,26 +43,23 @@ export async function GET(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  context: RouteHandlerContext
-): Promise<NextResponse> {
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
   try {
-    const token = request.headers.get("Authorization")?.split(" ")[1];
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await withAuth(request);
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
-    const userId = await verifyAuth(token);
-    if (!userId) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    // Extract ID from URL pattern
+    const id = request.url.split("/").pop();
+    if (!id) {
+      return NextResponse.json({ error: "Invalid recipe ID" }, { status: 400 });
     }
 
     await connectDB();
-
     const recipe = await Recipe.findOneAndDelete({
-      _id: context.params.id,
-      "users.userId": userId,
+      _id: id,
+      "users.userId": auth.userId,
       "users.permissions": "owner",
     });
 
