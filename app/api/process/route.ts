@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
     if (imageEntries.length > 0) {
       const processedImages = await Promise.all(
-        imageEntries.map(async ([_, image]) => {
+        imageEntries.map(async ([, image]) => {
           if (!(image instanceof File) || image.size === 0) return null;
 
           const arrayBuffer = await image.arrayBuffer();
