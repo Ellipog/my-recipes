@@ -52,6 +52,7 @@ export async function POST(req: Request) {
                   text?.toString() ||
                   "Analyze these images and create a recipe",
               },
+              /* @ts-expect-error */
               ...validImages.map((base64Image) => ({
                 type: "image_url" as const,
                 image_url: { url: base64Image },
