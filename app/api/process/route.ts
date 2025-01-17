@@ -8,8 +8,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
-
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
@@ -86,9 +84,15 @@ export async function POST(req: Request) {
       await openai.beta.threads.del(thread.id);
       return NextResponse.json({ result: response });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    return NextResponse.json(
+      { error: "An unknown error occurred" },
+      { status: 400 }
+    );
   }
 }
 
@@ -125,10 +129,4 @@ async function pollRunCompletion(threadId: string, runId: string) {
       runStatus = await openai.beta.threads.runs.retrieve(threadId, runId);
     }
   }
-}
-
-async function convertImageToBase64(file: File): Promise<string> {
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-  return buffer.toString("base64");
 }
