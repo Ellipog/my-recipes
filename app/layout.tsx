@@ -5,22 +5,22 @@ import SideMenu from "@/components/SideMenu";
 import { RecipesProvider } from "@/contexts/RecipesContext";
 
 export const metadata: Metadata = {
-  title: "Recipe Generator",
+  title: "My Recipes",
   description:
     "AI-powered recipe generator that creates personalized recipes based on your available ingredients",
   keywords: ["recipe", "AI", "cooking", "food", "meal planner"],
   authors: [{ name: "Elliot Strand Aaen" }],
   openGraph: {
-    title: "Recipe Generator",
+    title: "My Recipes",
     description:
       "AI-powered recipe generator that creates personalized recipes",
     type: "website",
     locale: "en_US",
-    siteName: "Recipe Generator",
+    siteName: "My Recipes",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Recipe Generator",
+    title: "My Recipes",
     description:
       "AI-powered recipe generator that creates personalized recipes",
   },
