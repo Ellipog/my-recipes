@@ -58,8 +58,6 @@ export default function Home() {
     }
   }, [pathname]);
 
-  const [key, setKey] = useState(0);
-
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault(); // Prevent form submission
     if (event.target.files) {
@@ -160,7 +158,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen" key={key}>
+    <main className="min-h-screen">
       {loading && <LoadingScreen />}
       {!result ? (
         <div
