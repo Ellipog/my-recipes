@@ -1,36 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# My Recipes
+
+A modern web application that helps you create, manage, and share recipes based on your available ingredients. Built with Next.js, MongoDB, and OpenAI.
+
+## Features
+
+- **AI-Powered Recipe Generation**
+
+  - Generate recipes based on available ingredients
+  - Specify number of servings, allergies, and cooking utilities
+  - Option for immediate cooking or preparation in advance
+  - Includes nutritional information for each recipe
+
+- **Recipe Management**
+
+  - Save generated recipes to your personal collection
+  - View detailed recipe information including ingredients and steps
+  - Interactive checklist for ingredients and cooking steps
+  - Built-in cooking timers for each step
+
+- **User Authentication**
+
+  - Secure user registration and login
+  - JWT-based authentication
+  - Protected recipe access
+
+- **Recipe Sharing**
+
+  - Generate shareable links for your recipes
+  - Share recipes with friends and family
+  - View shared recipes without authentication
+
+- **Modern UI/UX**
+  - Responsive design for all devices
+  - Beautiful gradient text and modern styling
+  - Loading animations and notifications
+  - Side menu for quick navigation
+
+## Tech Stack
+
+- **Frontend**
+
+  - Next.js 15.1.4
+  - React 19
+  - TailwindCSS
+  - Framer Motion
+
+- **Backend**
+
+  - Next.js API Routes
+  - MongoDB with Mongoose
+  - OpenAI API
+  - JWT Authentication
+
+- **Development**
+  - TypeScript
+  - ESLint
+  - Turbopack
+  - Bun
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/yourusername/my-recipes.git
+cd my-recipes
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+bun install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Create a `.env` file in the root directory with the following variables:
 
-## Learn More
+```env
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+OPENAI_API_KEY=your_openai_api_key
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. Run the development server:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+bun run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Deploy on Vercel
+## Environment Variables
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `MONGODB_URI`: MongoDB connection string
+- `JWT_SECRET`: Secret key for JWT token generation
+- `OPENAI_API_KEY`: OpenAI API key for recipe generation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure
+
+- `/app`: Next.js app router pages and API routes
+- `/components`: Reusable React components
+- `/contexts`: React context providers
+- `/lib`: Utility functions and database connection
+- `/models`: Mongoose models
+- `/public`: Static assets
+- `/data`: OpenAI function definitions
+
+## Contributing
+
+1. Fork the repository
+2. Create a new branch
+3. Make your changes
+4. Submit a pull request
