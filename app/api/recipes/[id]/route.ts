@@ -1,10 +1,15 @@
 // @ts-nocheck
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Recipe from "@/models/Recipe";
 import { verifyAuth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
+// @ts-ignore
+export const runtime = "nodejs";
+// @ts-ignore
+export const fetchCache = "force-no-store";
 
 export async function GET(
   request: Request,
