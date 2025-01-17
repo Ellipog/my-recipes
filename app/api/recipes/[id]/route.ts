@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   request: Request,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const token = request.headers.get("Authorization")?.split(" ")[1];
@@ -23,7 +23,7 @@ export async function GET(
     await connectDB();
 
     const recipe = await Recipe.findOne({
-      _id: context.params.id,
+      _id: params.id,
       "users.userId": userId,
     });
 
@@ -45,7 +45,7 @@ export async function GET(
 
 export async function DELETE(
   request: Request,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const token = request.headers.get("Authorization")?.split(" ")[1];
@@ -61,7 +61,7 @@ export async function DELETE(
     await connectDB();
 
     const recipe = await Recipe.findOneAndDelete({
-      _id: context.params.id,
+      _id: params.id,
       "users.userId": userId,
       "users.permissions": "owner",
     });
