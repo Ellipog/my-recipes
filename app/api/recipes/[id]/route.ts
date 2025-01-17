@@ -3,12 +3,14 @@ import connectDB from "@/lib/mongodb";
 import Recipe from "@/models/Recipe";
 import { verifyAuth } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  context: { params: { id: string } }
 ) {
   try {
-    const token = req.headers.get("Authorization")?.split(" ")[1];
+    const token = request.headers.get("Authorization")?.split(" ")[1];
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -21,7 +23,7 @@ export async function GET(
     await connectDB();
 
     const recipe = await Recipe.findOne({
-      _id: params.id,
+      _id: context.params.id,
       "users.userId": userId,
     });
 
@@ -42,11 +44,11 @@ export async function GET(
 }
 
 export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  context: { params: { id: string } }
 ) {
   try {
-    const token = req.headers.get("Authorization")?.split(" ")[1];
+    const token = request.headers.get("Authorization")?.split(" ")[1];
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -59,7 +61,7 @@ export async function DELETE(
     await connectDB();
 
     const recipe = await Recipe.findOneAndDelete({
-      _id: params.id,
+      _id: context.params.id,
       "users.userId": userId,
       "users.permissions": "owner",
     });
