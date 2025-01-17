@@ -37,6 +37,10 @@ const recipeSchema = new mongoose.Schema({
       },
     },
   ],
+  shareToken: {
+    type: String,
+    unique: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

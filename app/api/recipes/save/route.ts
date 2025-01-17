@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Recipe from "@/models/Recipe";
 import { verifyAuth } from "@/lib/auth";
+import crypto from "crypto";
+
+const generateShareToken = () => {
+  return crypto.randomBytes(32).toString("hex");
+};
 
 export async function POST(req: Request) {
   try {
@@ -16,18 +21,40 @@ export async function POST(req: Request) {
     }
 
     await connectDB();
-    const recipeData = await req.json();
+    const { recipeId, ...recipeData } = await req.json();
 
-    // Add the user as owner to the recipe
-    const recipe = await Recipe.create({
-      ...recipeData,
-      users: [
+    let recipe;
+    if (recipeId) {
+      // If recipeId exists, add the user to the existing recipe
+      recipe = await Recipe.findOneAndUpdate(
+        { _id: recipeId },
         {
-          userId,
-          permissions: "owner",
+          $addToSet: {
+            users: {
+              userId,
+              permissions: "viewer",
+            },
+          },
         },
-      ],
-    });
+        { new: true }
+      );
+    } else {
+      // If no recipeId, create a new recipe
+      recipe = await Recipe.create({
+        ...recipeData,
+        users: [
+          {
+            userId,
+            permissions: "owner",
+          },
+        ],
+        shareToken: generateShareToken(),
+      });
+    }
+
+    if (!recipe) {
+      return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
+    }
 
     return NextResponse.json({ success: true, recipe });
   } catch (error: any) {

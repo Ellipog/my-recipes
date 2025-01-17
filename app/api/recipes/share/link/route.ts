@@ -30,13 +30,11 @@ export async function POST(req: Request) {
     }
 
     // Generate a unique share token
-    const shareToken = crypto.randomBytes(32).toString("hex");
-    recipe.shareToken = shareToken;
     await recipe.save();
 
     return NextResponse.json({
       success: true,
-      shareUrl: `/recipes/shared/${shareToken}`,
+      shareUrl: `/recipes/shared/${recipe.shareToken}`,
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
