@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import RecipeView from "@/components/RecipeView";
 import LoadingScreen from "@/components/LoadingScreen";
+import ImageUploadPreview from "@/components/ImageUploadPreview";
 
 interface RecipeResult {
   recipe?: {
@@ -42,23 +44,52 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [showInput, setShowInput] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const pathname = usePathname();
+  const [images, setImages] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  // Reset the form when navigating to the home page
+  useEffect(() => {
+    if (pathname === "/") {
+      setResult(null);
+      setLoading(false);
+      setShowInput(true);
+      setErrorMessage(null);
+    }
+  }, [pathname]);
+
+  const [key, setKey] = useState(0);
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault(); // Prevent form submission
+    if (event.target.files) {
+      const newImages = Array.from(event.target.files);
+      setImages((prev) => [...prev, ...newImages]);
+    }
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent form submission
+    fileInputRef.current?.click();
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
 
     const formData = new FormData(event.currentTarget);
     const text = formData.get("text");
-    const imageFiles =
-      event.currentTarget.querySelector<HTMLInputElement>(
-        '[name="image"]'
-      )?.files;
 
     // Check if both text and images are empty
-    if (
-      (!text || text.toString().trim() === "") &&
-      (!imageFiles || imageFiles.length === 0)
-    ) {
+    if ((!text || text.toString().trim() === "") && images.length === 0) {
       setErrorMessage(
         "Please write a list of your available ingredients or upload images"
       );
@@ -82,11 +113,9 @@ export default function Home() {
     formData.delete("image");
 
     // Add all images to formData
-    if (imageFiles) {
-      Array.from(imageFiles).forEach((file, index) => {
-        formData.append(`image${index}`, file);
-      });
-    }
+    images.forEach((file, index) => {
+      formData.append(`image${index}`, file);
+    });
 
     try {
       const response = await fetch("/api/process", {
@@ -128,10 +157,18 @@ export default function Home() {
       });
       setShowInput(true);
     }
-  }
+  };
+
+  const resetForm = () => {
+    setResult(null);
+    setLoading(false);
+    setShowInput(true);
+    setErrorMessage(null);
+    setKey(key + 1);
+  };
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen" key={key}>
       {loading && <LoadingScreen />}
       {!result ? (
         <div
@@ -172,9 +209,15 @@ export default function Home() {
                   type="file"
                   id="image"
                   name="image"
+                  ref={fileInputRef}
                   accept="image/*"
-                  multiple
-                  className="w-full p-3 border border-gray-700 rounded-lg bg-gray-800/50 text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <ImageUploadPreview
+                  images={images}
+                  onRemove={removeImage}
+                  onAddClick={handleAddClick}
                 />
               </div>
 

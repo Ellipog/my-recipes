@@ -24,6 +24,12 @@ export default function SideMenu() {
     setIsOpen(false);
   };
 
+  const handleNewRecipe = () => {
+    router.push("/");
+    setIsOpen(false);
+    window.location.reload();
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -90,10 +96,7 @@ export default function SideMenu() {
             </div>
 
             <button
-              onClick={() => {
-                router.push("/");
-                setIsOpen(false);
-              }}
+              onClick={handleNewRecipe}
               className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-200 mb-6 shadow-lg shadow-blue-500/20"
             >
               New Recipe
