@@ -6,7 +6,26 @@ import { RecipesProvider } from "@/contexts/RecipesContext";
 
 export const metadata: Metadata = {
   title: "Recipe Generator",
-  description: "AI-powered recipe generator",
+  description:
+    "AI-powered recipe generator that creates personalized recipes based on your available ingredients",
+  keywords: ["recipe", "AI", "cooking", "food", "meal planner"],
+  authors: [{ name: "Elliot Strand Aaen" }],
+  openGraph: {
+    title: "Recipe Generator",
+    description:
+      "AI-powered recipe generator that creates personalized recipes",
+    type: "website",
+    locale: "en_US",
+    siteName: "Recipe Generator",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Recipe Generator",
+    description:
+      "AI-powered recipe generator that creates personalized recipes",
+  },
+  viewport: "width=device-width, initial-scale=1",
+  themeColor: "#0a0a0a",
 };
 
 export default function RootLayout({
@@ -16,6 +35,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/icon.png" sizes="any" />
+        <link rel="manifest" href="/manifest.json" />
+      </head>
       <body className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
         <AuthProvider>
           <RecipesProvider>
