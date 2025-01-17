@@ -1,15 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Recipe from "@/models/Recipe";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { token: string } }
-) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     await connectDB();
-    const { token } = params;
 
+    // Extract token from URL pattern
+    const token = request.url.split("/").pop();
     if (!token || typeof token !== "string") {
       return NextResponse.json(
         { error: "Invalid share token" },

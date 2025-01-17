@@ -7,11 +7,16 @@ import RecipeView from "@/components/RecipeView";
 import LoadingScreen from "@/components/LoadingScreen";
 
 interface Recipe {
-  title: string;
-  ingredients: string[];
-  instructions: string[];
-  cookingTime?: string;
-  servings?: number;
+  _id?: string;
+  recipe_name: string;
+  ingredients_list: { ingredient: string; quantity: string }[];
+  cooking_steps: { step: string; time: number; utility: string }[];
+  nutritional_information?: {
+    calories: number;
+    protein: number;
+    fat: number;
+    carbohydrates: number;
+  };
 }
 
 export default function RecipePage() {
@@ -61,5 +66,5 @@ export default function RecipePage() {
     return null;
   }
 
-  return <RecipeView results={recipe} />;
+  return <RecipeView results={recipe as any} />;
 }
