@@ -5,10 +5,11 @@ import { verifyAuth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+type Props = {
+  params: { id: string };
+};
+
+export async function GET(request: Request, props: Props) {
   try {
     const token = request.headers.get("Authorization")?.split(" ")[1];
     if (!token) {
@@ -23,7 +24,7 @@ export async function GET(
     await connectDB();
 
     const recipe = await Recipe.findOne({
-      _id: params.id,
+      _id: props.params.id,
       "users.userId": userId,
     });
 
@@ -43,10 +44,7 @@ export async function GET(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request, props: Props) {
   try {
     const token = request.headers.get("Authorization")?.split(" ")[1];
     if (!token) {
@@ -61,7 +59,7 @@ export async function DELETE(
     await connectDB();
 
     const recipe = await Recipe.findOneAndDelete({
-      _id: params.id,
+      _id: props.params.id,
       "users.userId": userId,
       "users.permissions": "owner",
     });
