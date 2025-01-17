@@ -6,18 +6,26 @@ import LoadingScreen from "@/components/LoadingScreen";
 
 interface RecipeResult {
   recipe?: {
-    title: string;
-    ingredients: string[];
-    instructions: string[];
-    cookingTime?: string;
-    servings?: number;
+    recipe_name: string;
+    ingredients_list: { ingredient: string; quantity: string }[];
+    cooking_steps: { step: string; time: number; utility: string }[];
+    nutritional_information?: {
+      calories: number;
+      protein: number;
+      fat: number;
+      carbohydrates: number;
+    };
   };
   content?: {
-    title: string;
-    ingredients: string[];
-    instructions: string[];
-    cookingTime?: string;
-    servings?: number;
+    recipe_name: string;
+    ingredients_list: { ingredient: string; quantity: string }[];
+    cooking_steps: { step: string; time: number; utility: string }[];
+    nutritional_information?: {
+      calories: number;
+      protein: number;
+      fat: number;
+      carbohydrates: number;
+    };
   };
   error?: string;
 }
@@ -205,11 +213,12 @@ export default function Home() {
         >
           <RecipeView
             results={
-              result.recipe
-                ? result.recipe
-                : result.content
-                ? result.content
-                : result
+              result.recipe ||
+              result.content || {
+                recipe_name: "Error",
+                ingredients_list: [],
+                cooking_steps: [],
+              }
             }
           />
         </div>
