@@ -130,23 +130,41 @@ export default function Home() {
       }
 
       let recipeData;
-      if (data.result.tool_calls) {
-        // Handle new format
-        const functionArgs = JSON.parse(
-          data.result.tool_calls[0].function.arguments
-        );
-        recipeData = functionArgs.recipe_details;
-      } else if (data.result.content) {
-        // Handle existing format with content
-        recipeData = JSON.parse(data.result.content);
-      } else if (data.result.recipe) {
-        // Handle existing format with recipe
-        recipeData = data.result.recipe;
-      }
+      try {
+        if (data.result.tool_calls) {
+          // Handle function call format
+          const functionArgs = JSON.parse(
+            data.result.tool_calls[0].function.arguments
+          );
+          recipeData = functionArgs.recipe_details;
+        } else if (data.result.recipe) {
+          // Handle direct recipe format from the API
+          recipeData = data.result.recipe;
+        } else if (data.result.content?.[0]?.text?.value) {
+          // Handle assistant API format
+          recipeData = JSON.parse(data.result.content[0].text.value);
+        } else {
+          throw new Error("Invalid response format");
+        }
 
-      setResult({ recipe: recipeData });
-      setLoading(false);
-      setShowInput(false);
+        // Validate the recipe data structure
+        if (
+          !recipeData.recipe_name ||
+          !Array.isArray(recipeData.ingredients_list) ||
+          !Array.isArray(recipeData.cooking_steps)
+        ) {
+          throw new Error("Invalid recipe format - missing required fields");
+        }
+
+        setResult({ recipe: recipeData });
+        setLoading(false);
+        setShowInput(false);
+      } catch (error) {
+        console.error("Error parsing recipe:", error);
+        setErrorMessage("Failed to generate recipe. Please try again.");
+        setLoading(false);
+        setShowInput(true);
+      }
     } catch (error) {
       console.error("Error:", error);
       setResult({

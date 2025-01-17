@@ -40,8 +40,18 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content:
-              "You are a helpful cooking assistant. Analyze images and text to create recipes. Always respond with valid JSON objects matching the required schema.",
+            content: `You are a helpful cooking assistant. Analyze images and text to create recipes. Always respond with valid JSON in this exact structure: 
+              {
+                "recipe_name": string,
+                "ingredients_list": [{ "ingredient": string, "quantity": string }],
+                "cooking_steps": [{ "step": string, "time": number, "utility": string }],
+                "nutritional_information": {
+                  "calories": number,
+                  "protein": number,
+                  "fat": number,
+                  "carbohydrates": number
+                }
+              }`,
           },
           {
             role: "user",
@@ -78,7 +88,20 @@ export async function POST(req: Request) {
     const thread = await openai.beta.threads.create();
     await openai.beta.threads.messages.create(thread.id, {
       role: "user",
-      content: text?.toString() + " (respond with json object)",
+      content:
+        text?.toString() +
+        ` (respond with json object in this exact structure: 
+      {
+              "recipe_name": string,
+              "ingredients_list": [{ "ingredient": string, "quantity": string }],
+              "cooking_steps": [{ "step": string, "time": number, "utility": string }],
+              "nutritional_information": {
+                "calories": number,
+                "protein": number,
+                "fat": number,a
+                "carbohydrates": number
+              }
+            })`,
     });
 
     const run = await openai.beta.threads.runs.create(thread.id, {
