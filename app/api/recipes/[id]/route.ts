@@ -1,12 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Recipe from "@/models/Recipe";
 import { verifyAuth } from "@/lib/auth";
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+interface RouteContext {
+  params: {
+    id: string;
+  };
+}
+
+export async function GET(req: NextRequest, context: RouteContext) {
   try {
     const token = req.headers.get("Authorization")?.split(" ")[1];
     if (!token) {
@@ -21,7 +24,7 @@ export async function GET(
     await connectDB();
 
     const recipe = await Recipe.findOne({
-      _id: params.id,
+      _id: context.params.id,
       "users.userId": userId,
     });
 
@@ -41,10 +44,7 @@ export async function GET(
   }
 }
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, context: RouteContext) {
   try {
     const token = req.headers.get("Authorization")?.split(" ")[1];
     if (!token) {
@@ -59,7 +59,7 @@ export async function DELETE(
     await connectDB();
 
     const recipe = await Recipe.findOneAndDelete({
-      _id: params.id,
+      _id: context.params.id,
       "users.userId": userId,
       "users.permissions": "owner",
     });
