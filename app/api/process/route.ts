@@ -12,18 +12,28 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const text = formData.get("text");
-    const image = formData.get("image");
+    const imageEntries = Array.from(formData.entries()).filter(([key]) =>
+      key.startsWith("image")
+    );
 
-    if (image instanceof File && image.size > 0) {
-      const arrayBuffer = await image.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+    if (imageEntries.length > 0) {
+      const processedImages = await Promise.all(
+        imageEntries.map(async ([_, image]) => {
+          if (!(image instanceof File) || image.size === 0) return null;
 
-      const processedImage = await sharp(buffer)
-        .resize(768, 768, { fit: "inside" })
-        .jpeg({ quality: 80 })
-        .toBuffer();
+          const arrayBuffer = await image.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
 
-      const base64Image = processedImage.toString("base64");
+          const processedImage = await sharp(buffer)
+            .resize(768, 768, { fit: "inside" })
+            .jpeg({ quality: 80 })
+            .toBuffer();
+
+          return `data:image/jpeg;base64,${processedImage.toString("base64")}`;
+        })
+      );
+
+      const validImages = processedImages.filter(Boolean);
 
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -39,14 +49,13 @@ export async function POST(req: Request) {
               {
                 type: "text",
                 text:
-                  text?.toString() || "Analyze this image and create a recipe",
+                  text?.toString() ||
+                  "Analyze these images and create a recipe",
               },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:image/jpeg;base64,${base64Image}`,
-                },
-              },
+              ...validImages.map((base64Image) => ({
+                type: "image_url" as const,
+                image_url: { url: base64Image },
+              })),
             ],
           },
         ],
@@ -62,28 +71,28 @@ export async function POST(req: Request) {
       });
 
       return NextResponse.json({ result: completion.choices[0].message });
-    } else {
-      // Text-only request using the existing assistant
-      const thread = await openai.beta.threads.create();
-      await openai.beta.threads.messages.create(thread.id, {
-        role: "user",
-        content: text?.toString() + " (respond with json object)",
-      });
-
-      const run = await openai.beta.threads.runs.create(thread.id, {
-        assistant_id: process.env.OPENAI_ASSISTANT_ID!,
-        tools: [
-          {
-            type: "function" as const,
-            function: recipeFunction,
-          },
-        ],
-      });
-
-      const response = await pollRunCompletion(thread.id, run.id);
-      await openai.beta.threads.del(thread.id);
-      return NextResponse.json({ result: response });
     }
+
+    // Text-only request using the existing assistant
+    const thread = await openai.beta.threads.create();
+    await openai.beta.threads.messages.create(thread.id, {
+      role: "user",
+      content: text?.toString() + " (respond with json object)",
+    });
+
+    const run = await openai.beta.threads.runs.create(thread.id, {
+      assistant_id: process.env.OPENAI_ASSISTANT_ID!,
+      tools: [
+        {
+          type: "function" as const,
+          function: recipeFunction,
+        },
+      ],
+    });
+
+    const response = await pollRunCompletion(thread.id, run.id);
+    await openai.beta.threads.del(thread.id);
+    return NextResponse.json({ result: response });
   } catch (error: unknown) {
     console.error("API Error:", error);
     if (error instanceof Error) {

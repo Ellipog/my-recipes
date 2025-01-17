@@ -27,6 +27,13 @@ interface RecipeResult {
       carbohydrates: number;
     };
   };
+  tool_calls?: [
+    {
+      function: {
+        arguments: string;
+      };
+    }
+  ];
   error?: string;
 }
 
@@ -42,15 +49,18 @@ export default function Home() {
 
     const formData = new FormData(event.currentTarget);
     const text = formData.get("text");
-    const image = formData.get("image") as File;
+    const imageFiles =
+      event.currentTarget.querySelector<HTMLInputElement>(
+        '[name="image"]'
+      )?.files;
 
-    // Check if both text and image are empty
+    // Check if both text and images are empty
     if (
       (!text || text.toString().trim() === "") &&
-      (!image || image.size === 0)
+      (!imageFiles || imageFiles.length === 0)
     ) {
       setErrorMessage(
-        "Please write a list of your available ingredients or upload an image"
+        "Please write a list of your available ingredients or upload images"
       );
       return;
     }
@@ -63,8 +73,20 @@ export default function Home() {
 
     const enhancedText = `${text} (People eating: ${servings}, Cook Now: ${
       cookNow === "on" ? "yes" : "no"
+    }, Allergies: ${formData.get("allergies") || "none"}, Utilities: ${
+      formData.get("utilities") || "oven, stove, microwave"
     })`;
     formData.set("text", enhancedText);
+
+    // Remove existing image entries
+    formData.delete("image");
+
+    // Add all images to formData
+    if (imageFiles) {
+      Array.from(imageFiles).forEach((file, index) => {
+        formData.append(`image${index}`, file);
+      });
+    }
 
     try {
       const response = await fetch("/api/process", {
@@ -73,31 +95,31 @@ export default function Home() {
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "An error occurred");
+
+      if (data.error) {
+        setErrorMessage(data.error);
+        setLoading(false);
+        return;
       }
 
-      try {
-        let recipeData;
-        if (data.result?.tool_calls?.[0]?.function?.arguments) {
-          // Handle the first response format
-          const parsedArguments = JSON.parse(
-            data.result.tool_calls[0].function.arguments
-          );
-          recipeData = parsedArguments.recipe_details;
-        } else if (data.result?.content?.[0]?.text?.value) {
-          // Handle the second response format
-          recipeData = JSON.parse(data.result.content[0].text.value);
-        } else {
-          throw new Error("Unexpected response format");
-        }
-
-        setResult(recipeData);
-      } catch (error) {
-        console.error("Error parsing JSON:", error);
-        console.error("Raw data:", data);
-        setResult({ error: "Failed to parse response data" });
+      let recipeData;
+      if (data.result.tool_calls) {
+        // Handle new format
+        const functionArgs = JSON.parse(
+          data.result.tool_calls[0].function.arguments
+        );
+        recipeData = functionArgs.recipe_details;
+      } else if (data.result.content) {
+        // Handle existing format with content
+        recipeData = JSON.parse(data.result.content);
+      } else if (data.result.recipe) {
+        // Handle existing format with recipe
+        recipeData = data.result.recipe;
       }
+
+      setResult({ recipe: recipeData });
+      setLoading(false);
+      setShowInput(false);
     } catch (error) {
       console.error("Error:", error);
       setResult({
@@ -105,8 +127,6 @@ export default function Home() {
           error instanceof Error ? error.message : "An unknown error occurred",
       });
       setShowInput(true);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -146,13 +166,14 @@ export default function Home() {
                   htmlFor="image"
                   className="block text-lg font-medium text-foreground/90"
                 >
-                  Add a photo (optional)
+                  Add photos (optional)
                 </label>
                 <input
                   type="file"
                   id="image"
                   name="image"
                   accept="image/*"
+                  multiple
                   className="w-full p-3 border border-gray-700 rounded-lg bg-gray-800/50 text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600"
                 />
               </div>
@@ -169,8 +190,41 @@ export default function Home() {
                   id="servings"
                   name="servings"
                   min="1"
-                  defaultValue="2"
+                  defaultValue="1"
                   className="w-full p-3 border border-gray-700 rounded-lg bg-gray-800/50 text-foreground focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="allergies"
+                  className="block text-lg font-medium text-foreground/90"
+                >
+                  Allergies & Dietary Restrictions
+                </label>
+                <textarea
+                  id="allergies"
+                  name="allergies"
+                  placeholder="Enter allergies or dietary restrictions (e.g., nuts, dairy, gluten)..."
+                  className="w-full p-3 border border-gray-700 rounded-lg bg-gray-800/50 text-foreground focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="utilities"
+                  className="block text-lg font-medium text-foreground/90"
+                >
+                  Available Kitchen Utilities
+                </label>
+                <textarea
+                  id="utilities"
+                  name="utilities"
+                  placeholder="Enter available kitchen utilities (e.g., oven, stove, microwave)..."
+                  defaultValue="oven, stove, microwave"
+                  className="w-full p-3 border border-gray-700 rounded-lg bg-gray-800/50 text-foreground focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={2}
                 />
               </div>
 
@@ -214,11 +268,15 @@ export default function Home() {
           <RecipeView
             results={
               result.recipe ||
-              result.content || {
-                recipe_name: "Error",
-                ingredients_list: [],
-                cooking_steps: [],
-              }
+              result.content ||
+              (result.tool_calls
+                ? JSON.parse(result.tool_calls[0].function.arguments)
+                    .recipe_details
+                : {
+                    recipe_name: "Error",
+                    ingredients_list: [],
+                    cooking_steps: [],
+                  })
             }
           />
         </div>

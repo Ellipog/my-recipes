@@ -1,7 +1,7 @@
 export const recipeFunction = {
   name: "create_recipe",
   description:
-    "Creates a recipe based on available ingredients, number of servings, and available cooking utilities.",
+    "Creates a recipe based on available ingredients, number of servings, allergies, and available cooking utilities.",
   strict: true,
   parameters: {
     type: "object",
@@ -9,6 +9,7 @@ export const recipeFunction = {
       "ingredients",
       "servings",
       "utilities",
+      "allergies",
       "recipe_details",
       "cook_now",
     ],
@@ -24,6 +25,14 @@ export const recipeFunction = {
       servings: {
         type: "number",
         description: "The number of people the meal will serve",
+      },
+      allergies: {
+        type: "array",
+        description: "List of allergies to avoid in the recipe",
+        items: {
+          type: "string",
+          description: "An allergy or dietary restriction",
+        },
       },
       cook_now: {
         type: "boolean",
