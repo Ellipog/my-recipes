@@ -5,9 +5,9 @@ import { verifyAuth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-// @ts-ignore
 export async function GET(
   request: Request,
+  // @ts-ignore
   context: { params: { id: string } }
 ) {
   try {
@@ -44,9 +44,9 @@ export async function GET(
   }
 }
 
-// @ts-ignore
 export async function DELETE(
   request: Request,
+  // @ts-ignore
   context: { params: { id: string } }
 ) {
   try {
