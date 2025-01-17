@@ -5,9 +5,10 @@ import { verifyAuth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-type Params = { id: string };
-
-export async function GET(request: Request, context: { params: Params }) {
+export async function GET(
+  request: Request,
+  context: { params: { id: string } }
+) {
   try {
     const token = request.headers.get("Authorization")?.split(" ")[1];
     if (!token) {
@@ -42,7 +43,10 @@ export async function GET(request: Request, context: { params: Params }) {
   }
 }
 
-export async function DELETE(request: Request, context: { params: Params }) {
+export async function DELETE(
+  request: Request,
+  context: { params: { id: string } }
+) {
   try {
     const token = request.headers.get("Authorization")?.split(" ")[1];
     if (!token) {
