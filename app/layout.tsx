@@ -35,7 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <link rel="icon" href="/icon.png" />
+      <link rel="icon" type="image/png" href="/icon.png" />
       <body className="min-h-screen bg-gradient-to-b from-gray-900 to-black">
         <AuthProvider>
           <RecipesProvider>
